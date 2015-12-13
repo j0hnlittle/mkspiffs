@@ -11,6 +11,7 @@
 #include "spiffs/spiffs.h"
 #include <vector>
 #include <dirent.h>
+#include <direct.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
