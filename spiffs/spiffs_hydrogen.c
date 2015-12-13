@@ -79,7 +79,7 @@ s32_t SPIFFS_mount(spiffs *fs, spiffs_config *config, u8_t *work,
   u8_t ptr_size = sizeof(void*);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-  u8_t addr_lsb = ((u8_t)fd_space) & (ptr_size-1);
+  u8_t addr_lsb = ((u8_t)fd_space_size) & (ptr_size-1);
 #pragma GCC diagnostic pop
   if (addr_lsb) {
     fd_space += (ptr_size-addr_lsb);
@@ -91,7 +91,7 @@ s32_t SPIFFS_mount(spiffs *fs, spiffs_config *config, u8_t *work,
   // align cache pointer to 4 byte boundary, below is safe
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-  addr_lsb = ((u8_t)cache) & (ptr_size-1);
+  addr_lsb = ((u8_t)cache_size) & (ptr_size-1);
 #pragma GCC diagnostic pop
   if (addr_lsb) {
     u8_t *cache_8 = (u8_t *)cache;
@@ -720,7 +720,7 @@ s32_t SPIFFS_close(spiffs *fs, spiffs_file fh) {
   return res;
 }
 
-s32_t SPIFFS_rename(spiffs *fs, const char *old, const char *new) {
+s32_t SPIFFS_rename(spiffs *fs, const char *old, const char *new_char) {
   SPIFFS_API_CHECK_CFG(fs);
   SPIFFS_API_CHECK_MOUNT(fs);
   SPIFFS_LOCK(fs);
@@ -731,7 +731,7 @@ s32_t SPIFFS_rename(spiffs *fs, const char *old, const char *new) {
   s32_t res = spiffs_object_find_object_index_header_by_name(fs, (const u8_t*)old, &pix_old);
   SPIFFS_API_CHECK_RES_UNLOCK(fs, res);
 
-  res = spiffs_object_find_object_index_header_by_name(fs, (const u8_t*)new, &pix_dummy);
+  res = spiffs_object_find_object_index_header_by_name(fs, (const u8_t*)new_char, &pix_dummy);
   if (res == SPIFFS_ERR_NOT_FOUND) {
     res = SPIFFS_OK;
   } else if (res == SPIFFS_OK) {
@@ -748,7 +748,7 @@ s32_t SPIFFS_rename(spiffs *fs, const char *old, const char *new) {
   }
   SPIFFS_API_CHECK_RES_UNLOCK(fs, res);
 
-  res = spiffs_object_update_index_hdr(fs, fd, fd->obj_id, fd->objix_hdr_pix, 0, (const u8_t*)new,
+  res = spiffs_object_update_index_hdr(fs, fd, fd->obj_id, fd->objix_hdr_pix, 0, (const u8_t*)new_char,
       0, &pix_dummy);
 
   spiffs_fd_return(fs, fd->file_nbr);
