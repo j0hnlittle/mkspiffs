@@ -922,7 +922,7 @@ static s32_t spiffs_object_index_consistency_check_v(spiffs *fs, spiffs_obj_id o
     } else { // span index
       // objix page, see if header can be found
       int r = spiffs_object_index_search(fs, obj_id);
-      u8_t delete = 0;
+      u8_t delete_index = 0;
       if (r == -1) {
         // not in temporary index, try finding it
         spiffs_page_ix objix_hdr_pix;
@@ -933,7 +933,7 @@ static s32_t spiffs_object_index_consistency_check_v(spiffs *fs, spiffs_obj_id o
           obj_table[*log_ix] = obj_id & ~SPIFFS_OBJ_ID_IX_FLAG;
         } else if (res == SPIFFS_ERR_NOT_FOUND) {
           // not found, register as unreachable
-          delete = 1;
+          delete_index = 1;
           obj_table[*log_ix] = obj_id | SPIFFS_OBJ_ID_IX_FLAG;
         } else {
           SPIFFS_CHECK_RES(res);
@@ -946,11 +946,11 @@ static s32_t spiffs_object_index_consistency_check_v(spiffs *fs, spiffs_obj_id o
         // in temporary index, check reachable flag
         if ((obj_table[r] & SPIFFS_OBJ_ID_IX_FLAG)) {
           // registered as unreachable
-          delete = 1;
+          delete_index = 1;
         }
       }
 
-      if (delete) {
+      if (delete_index) {
         SPIFFS_CHECK_DBG("IX: FIXUP: pix %04x, obj id:%04x spix:%04x is orphan index - deleting\n",
             cur_pix, obj_id, p_hdr.span_ix);
         CHECK_CB(fs, SPIFFS_CHECK_INDEX, SPIFFS_CHECK_DELETE_ORPHANED_INDEX, cur_pix, obj_id);
